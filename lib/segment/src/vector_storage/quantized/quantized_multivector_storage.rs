@@ -607,6 +607,20 @@ where
         self.quantized_storage.get_vector(multi_offset)
     }
 
+    fn for_each_in_batch<F>(&self, offsets: &[impl UniversalOffset], callback: F)
+    where
+        F: FnMut(usize, &[u8]),
+    {
+        debug_assert!(offsets.iter().all(|offset| offset.count() == 1));
+
+        let offsets: Vec<_> = offsets
+            .iter()
+            .map(|&offset| self.offsets.get_offset(offset.start()))
+            .collect();
+
+        self.quantized_storage.for_each_in_batch(&offsets, callback);
+    }
+
     fn score(
         &self,
         query: &Self::EncodedQuery,
